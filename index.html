@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fibonacci Nature Spiral Explorer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+<div class="max-w-5xl mx-auto p-4">
+  <h1 class="text-3xl font-bold text-amber-400 text-center mb-1">Fibonacci Nature Spiral Explorer</h1>
+  <p class="text-center text-gray-400 text-sm mb-6">Explore the mathematics behind nature's most beautiful pattern</p>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Left: Sequence table + facts -->
+    <div class="space-y-4">
+      <div class="bg-gray-800 rounded-xl p-4">
+        <h2 class="text-lg font-semibold text-amber-300 mb-3">Fibonacci Sequence (first 20)</h2>
+        <div class="overflow-auto max-h-64">
+          <table class="w-full text-sm" id="fibTable">
+            <thead><tr class="text-amber-400 border-b border-gray-700">
+              <th class="text-left py-1">n</th><th class="text-right py-1">F(n)</th><th class="text-right py-1">Ratio F(n)/F(n-1)</th>
+            </tr></thead>
+            <tbody id="fibTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Nature examples -->
+      <div class="bg-gray-800 rounded-xl p-4">
+        <h2 class="text-lg font-semibold text-green-300 mb-2">Fibonacci in Nature</h2>
+        <div class="space-y-2 text-sm text-gray-300">
+          <div class="flex gap-2"><span class="text-2xl">🌻</span><p><strong class="text-yellow-300">Sunflowers:</strong> The seeds spiral in 34 and 55 directions — consecutive Fibonacci numbers — creating the most efficient packing.</p></div>
+          <div class="flex gap-2"><span class="text-2xl">🐚</span><p><strong class="text-blue-300">Nautilus Shell:</strong> Each chamber grows by φ (1.618...), forming a perfect logarithmic spiral matching the golden ratio.</p></div>
+          <div class="flex gap-2"><span class="text-2xl">🌲</span><p><strong class="text-green-300">Pinecones:</strong> Spiral rows count 8 and 13 — both Fibonacci — optimizing light capture for each scale.</p></div>
+          <div class="flex gap-2"><span class="text-2xl">🌌</span><p><strong class="text-purple-300">Galaxies:</strong> Spiral arms follow logarithmic curves approaching the golden angle (137.5°), derived from φ.</p></div>
+          <div class="flex gap-2"><span class="text-2xl">🐝</span><p><strong class="text-amber-300">Bee Ancestry:</strong> A male bee has 1 parent, 2 grandparents, 3 great-grandparents... the entire family tree is Fibonacci!</p></div>
+        </div>
+      </div>
+
+      <!-- Did you know -->
+      <div class="bg-gray-800 rounded-xl p-4">
+        <h2 class="text-lg font-semibold text-pink-300 mb-2">Did You Know?</h2>
+        <p id="factText" class="text-sm text-gray-300 min-h-[60px]"></p>
+        <button id="nextFact" aria-label="Next fact" class="mt-2 px-4 py-2 bg-pink-700 hover:bg-pink-600 rounded-lg text-sm transition">Next Fact →</button>
+      </div>
+    </div>
+
+    <!-- Right: Canvas spiral + phi slider -->
+    <div class="space-y-4">
+      <div class="bg-gray-800 rounded-xl p-4">
+        <h2 class="text-lg font-semibold text-amber-300 mb-2">Golden Spiral</h2>
+        <canvas id="spiralCanvas" width="380" height="380" class="mx-auto block rounded-lg bg-gray-900" aria-label="Animated golden spiral"></canvas>
+        <div class="flex gap-2 mt-2 justify-center">
+          <button id="replayBtn" aria-label="Replay spiral animation" class="px-4 py-2 bg-amber-700 hover:bg-amber-600 rounded-lg text-sm transition">Replay Animation</button>
+        </div>
+      </div>
+
+      <!-- Phi slider -->
+      <div class="bg-gray-800 rounded-xl p-4">
+        <h2 class="text-lg font-semibold text-blue-300 mb-2">Golden Ratio Rectangle</h2>
+        <p class="text-xs text-gray-400 mb-2">φ = 1.61803... Drag the slider to see how the golden rectangle is proportioned</p>
+        <input type="range" id="phiSlider" min="1" max="250" value="125" class="w-full accent-amber-400" aria-label="Phi ratio slider">
+        <canvas id="phiCanvas" width="380" height="120" class="mt-2 block rounded-lg bg-gray-900 mx-auto" aria-label="Golden ratio rectangle visualization"></canvas>
+        <p id="phiLabel" class="text-center text-amber-400 text-sm mt-1"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Build Fibonacci table
+const fibs = [1,1];
+for(let i=2;i<20;i++) fibs.push(fibs[i-1]+fibs[i-2]);
+
+const tbody = document.getElementById('fibTbody');
+fibs.forEach((f,i) => {
+  const tr = document.createElement('tr');
+  tr.className = i%2===0?'bg-gray-750':'';
+  const ratio = i>=1 ? (f/fibs[i-1]).toFixed(6) : '—';
+  const ratioColor = i>=5 ? 'text-amber-400' : 'text-gray-400';
+  const td1 = document.createElement('td'); td1.className='py-1 text-gray-400'; td1.textContent = i+1;
+  const td2 = document.createElement('td'); td2.className='py-1 text-right font-mono text-green-300'; td2.textContent = f.toLocaleString();
+  const td3 = document.createElement('td'); td3.className='py-1 text-right font-mono '+ratioColor; td3.textContent = ratio;
+  tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+  tbody.appendChild(tr);
+});
+
+// Facts
+const FACTS = [
+  "The golden ratio φ = (1+√5)/2 ≈ 1.61803... is irrational — its decimal never repeats!",
+  "Fibonacci numbers appear in Pascal's Triangle: the shallow diagonals sum to consecutive Fibonacci numbers.",
+  "Every 3rd Fibonacci number is divisible by 2, every 4th by 3, every 5th by 5 — a pattern within a pattern!",
+  "The sum of the first n Fibonacci numbers equals F(n+2) - 1. Magic!",
+  "The Fibonacci sequence was described in India by Hemachandra in 1150 AD, 50 years before Fibonacci's book.",
+  "A Fibonacci rectangle can be divided into ever-smaller golden rectangles infinitely — self-similar geometry.",
+  "The angle 137.5° (golden angle = 360°/φ²) governs how plants arrange leaves to maximize sunlight.",
+  "Adjacent Fibonacci numbers are the worst case for the Euclidean algorithm — they are 'most coprime'.",
+  "F(n)² + F(n+1)² = F(2n+1) — the identity linking squares of consecutive Fibonacci numbers.",
+  "The stock market's Fibonacci retracement levels (23.6%, 38.2%, 61.8%) are derived from Fibonacci ratios.",
+];
+let factIdx = 0;
+function showFact() {
+  document.getElementById('factText').textContent = FACTS[factIdx];
+}
+document.getElementById('nextFact').addEventListener('click', () => {
+  factIdx = (factIdx+1)%FACTS.length; showFact();
+});
+showFact();
+
+// Spiral canvas
+const sc = document.getElementById('spiralCanvas');
+const sctx = sc.getContext('2d');
+const SW = sc.width, SH = sc.height;
+let animId = null;
+let animProgress = 0;
+
+function drawSpiral() {
+  sctx.clearRect(0,0,SW,SH);
+  // Draw Fibonacci squares + arcs
+  const scale = 7;
+  const fibN = [1,1,2,3,5,8,13,21,34];
+  // Positions of squares (growing sequence, rotating placement)
+  // Start center-ish
+  let cx = SW/2 + 30, cy = SH/2 + 40;
+  const positions = [];
+  // directions: right, up, left, down cycling
+  let x = cx, y = cy;
+  const dirs = [[1,0],[0,-1],[-1,0],[0,1]];
+  let di = 0;
+  let px = SW/2 - 50, py = SH/2 + 20;
+  // Precompute square placements
+  const squares = [];
+  let ax=0,ay=0;
+  // Simple fixed layout for golden spiral squares
+  const layout = [
+    {r:0,c:0},{r:0,c:1},{r:-1,c:1},{r:-1,c:-1},{r:2,c:-1},{r:2,c:3},
+    {r:-3,c:3},{r:-3,c:-4},{r:5,c:-4},{r:5,c:9}
+  ];
+  // Use absolute pixel positions for each square
+  const sq = [];
+  const base = scale;
+  // Place squares manually for 9 fibonacci squares in golden spiral
+  let ox=SW/2-10, oy=SH/2+20;
+  // f1=1,f2=1 adjacent horizontally, then f3=2 above, f4=3 left, f5=5 below, f6=8 right, f7=13 above...
+  const placements = [
+    {x:ox,       y:oy,       s:fibN[0], a:0},
+    {x:ox+fibN[0]*base, y:oy, s:fibN[1], a:1},
+    {x:ox,       y:oy-fibN[2]*base, s:fibN[2], a:2},
+    {x:ox-fibN[3]*base, y:oy-fibN[3]*base+fibN[0]*base, s:fibN[3], a:3},
+    {x:ox-fibN[3]*base, y:oy+fibN[0]*base, s:fibN[4], a:0},
+    {x:ox+fibN[0]*base, y:oy+fibN[0]*base, s:fibN[5], a:1},
+    {x:ox+fibN[0]*base, y:oy-fibN[6]*base, s:fibN[6], a:2},
+    {x:ox-fibN[7]*base, y:oy-fibN[7]*base+fibN[0]*base, s:fibN[7], a:3},
+  ];
+
+  // Draw squares with progress
+  const totalSquares = placements.length;
+  const progress = animProgress; // 0..1
+  const squaresToShow = Math.floor(progress * (totalSquares + 4));
+
+  const colors = ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16'];
+
+  placements.forEach((p, i) => {
+    if(i > squaresToShow) return;
+    sctx.strokeStyle = colors[i%colors.length];
+    sctx.lineWidth = 2;
+    sctx.globalAlpha = Math.min(1, (squaresToShow-i)/1);
+    sctx.strokeRect(p.x, p.y, p.s*base, p.s*base);
+    sctx.globalAlpha = 1;
+
+    // Label
+    if(squaresToShow > i) {
+      sctx.fillStyle = colors[i%colors.length];
+      sctx.font = `${Math.max(8,p.s*base/2.5)}px monospace`;
+      sctx.textAlign = 'center';
+      sctx.fillText(p.s, p.x + p.s*base/2, p.y + p.s*base/2 + 5);
+    }
+  });
+
+  // Draw arc segments
+  const arcProgress = Math.max(0, progress - 0.3) / 0.7;
+  placements.forEach((p, i) => {
+    if(i >= 7) return;
+    if(i > squaresToShow - 2) return;
+    const alpha = Math.min(1, arcProgress * placements.length - i * 0.8);
+    if(alpha <= 0) return;
+    sctx.globalAlpha = alpha;
+    sctx.strokeStyle = '#fbbf24';
+    sctx.lineWidth = 2.5;
+    sctx.beginPath();
+    const s = p.s * base;
+    // Arc corners cycle: a=0→top-left corner→quarter arc, etc
+    const corners = [
+      [p.x, p.y+s, Math.PI, Math.PI*1.5],
+      [p.x+s, p.y+s, Math.PI*1.5, Math.PI*2],
+      [p.x+s, p.y, 0, Math.PI*0.5],
+      [p.x, p.y, Math.PI*0.5, Math.PI],
+    ];
+    const [cx2,cy2,sa,ea] = corners[p.a%4];
+    sctx.arc(cx2, cy2, p.s*base, sa, ea);
+    sctx.stroke();
+    sctx.globalAlpha = 1;
+  });
+
+  // Title
+  sctx.fillStyle = '#fbbf24';
+  sctx.font = '13px sans-serif';
+  sctx.textAlign = 'center';
+  sctx.fillText('φ ≈ 1.61803...', SW/2, 18);
+}
+
+function animate() {
+  animProgress += 0.008;
+  if(animProgress >= 1) { animProgress = 1; drawSpiral(); return; }
+  drawSpiral();
+  animId = requestAnimationFrame(animate);
+}
+
+document.getElementById('replayBtn').addEventListener('click', () => {
+  if(animId) cancelAnimationFrame(animId);
+  animProgress = 0;
+  animate();
+});
+
+animate();
+
+// Phi canvas
+const pc = document.getElementById('phiCanvas');
+const pctx = pc.getContext('2d');
+const PW = pc.width, PH = pc.height;
+const slider = document.getElementById('phiSlider');
+const PHI = 1.6180339887;
+
+function drawPhi() {
+  pctx.clearRect(0,0,PW,PH);
+  const t = slider.value/250; // 0..1
+  const ratio = 1 + t * (PHI - 1); // 1..phi
+  const pad = 20;
+  const maxW = PW - 2*pad;
+  const h = PH - 2*pad - 20;
+  const w = Math.min(maxW, h * ratio);
+  const startX = (PW - w)/2;
+  const startY = pad;
+
+  // Main rectangle
+  pctx.fillStyle = '#1e3a5f';
+  pctx.fillRect(startX, startY, w, h);
+  pctx.strokeStyle = '#3b82f6';
+  pctx.lineWidth = 2;
+  pctx.strokeRect(startX, startY, w, h);
+
+  // Square portion
+  const sqW = Math.min(w, h);
+  pctx.fillStyle = 'rgba(251,191,36,0.2)';
+  pctx.fillRect(startX, startY, sqW, h);
+  pctx.strokeStyle = '#fbbf24';
+  pctx.lineWidth = 1.5;
+  pctx.strokeRect(startX, startY, sqW, h);
+
+  // Labels
+  pctx.fillStyle = '#94a3b8';
+  pctx.font = '11px sans-serif';
+  pctx.textAlign = 'center';
+  pctx.fillText('1', startX + sqW/2, PH - 4);
+  if(w > sqW + 20) {
+    pctx.fillText((ratio-1).toFixed(3), startX + sqW + (w-sqW)/2, PH-4);
+  }
+
+  document.getElementById('phiLabel').textContent = 'Ratio: ' + ratio.toFixed(4) + (Math.abs(ratio-PHI)<0.01 ? ' ≈ φ (Golden Ratio!)' : '');
+}
+
+slider.addEventListener('input', drawPhi);
+drawPhi();
+</script>
+</body>
+</html>
